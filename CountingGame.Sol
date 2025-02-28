@@ -60,7 +60,7 @@ contract CountingGame {
         ownerShare += ownerCut;
     }
     
-    function withdrawRewards(address payable winner) public {
+    function withdrawRewards() public {
         require(gameState == 1, "Game not over"); // this says, if gameState is not 1, game is still going
         require(msg.sender == lastPlayer); // this ensures only the last player can claim
         uint payout = rewardPool;
