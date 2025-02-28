@@ -11,8 +11,9 @@ contract CountingGame {
     uint public ownerShare;
     address payable public lastPlayer; 
 
-    constructor() {
+    constructor() payable {
         owner = payable(msg.sender); // Set contract deployer as owner
+        rewardPool = msg.value;
     }
 
     modifier nonReentrant() {
