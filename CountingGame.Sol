@@ -32,7 +32,7 @@ contract CountingGame {
     }
 
     function inc() public payable gameOver nonReentrant {   
-        //require(msg.value == fees, "Insufficient fee"); // Require correct fee
+        require(msg.value == fees, "Insufficient fee"); // Require correct fee
         count += 1;
         distributeFees();
         
@@ -43,7 +43,7 @@ contract CountingGame {
     }
     
     function dec() public payable gameOver nonReentrant {
-        //require(msg.value == fees, "Insufficient fee"); // Require correct fee  
+        require(msg.value == fees, "Insufficient fee"); // Require correct fee  
         count -= 1;
         distributeFees();
         
