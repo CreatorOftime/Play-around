@@ -1,0 +1,78 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
+
+contract CountingGame {
+    uint internal count = 190;
+    uint public fees = 100 wei; // Fix ETH syntax
+    uint public gameState = 0; // sets the game on or off, because we need an easy way to handle game over.
+    address payable public owner;
+    bool private locked;
+    uint public rewardPool;
+    uint public ownerShare;
+    address payable public lastPlayer; 
+
+    constructor() {
+        owner = payable(msg.sender); // Set contract deployer as owner
+    }
+
+    modifier nonReentrant() {
+        require(!locked, "Reentrant call");
+        locked = true;
+        _;
+        locked = false;
+    }
+
+    modifier gameOver() {
+       require(gameState == 0, "Game has finished");
+       _;
+    }
+
+    function get() public view returns (uint) {
+        return count;
+    }
+
+    function inc() public payable gameOver nonReentrant {   
+        //require(msg.value == fees, "Insufficient fee"); // Require correct fee
+        count += 1;
+        distributeFees();
+        
+        if (count == 200) {
+            gameState = 1;
+            lastPlayer = payable(msg.sender);
+        }
+    }
+    
+    function dec() public payable gameOver nonReentrant {
+        //require(msg.value == fees, "Insufficient fee"); // Require correct fee  
+        count -= 1;
+        distributeFees();
+        
+        if (count == 0) {
+            gameState = 1;
+            lastPlayer = payable(msg.sender);
+        }
+    }
+    
+    function distributeFees() internal {
+        uint rewardShare = (fees * 60) / 100;
+        uint ownerCut = (fees * 40) / 100;
+        rewardPool += rewardShare;
+        ownerShare += ownerCut;
+    }
+    
+    function withdrawRewards(address payable winner) public {
+        require(gameState == 1, "Game not over"); // this says, if gameState is not 1, game is still going
+        require(msg.sender == lastPlayer); // this ensures only the last player can claim
+        uint payout = rewardPool;
+        rewardPool = 0;
+        winner.transfer(payout);
+    }
+    
+    function withdrawOwnerShare() public {
+        require(msg.sender == owner, "Don't be like that :/");
+        require(ownerShare > 0, "We're Broke!");
+        uint payout = ownerShare;
+        ownerShare = 0;
+        owner.transfer(payout);
+    }
+}
