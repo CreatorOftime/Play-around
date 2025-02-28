@@ -2,8 +2,8 @@
 pragma solidity ^0.8.7;
 
 contract CountingGame {
-    uint internal count = 190;
-    uint public fees = 100 wei; // Fix ETH syntax
+    uint internal count = 100;
+    uint public fees = 100000000 gwei; // Fix ETH syntax
     uint public gameState = 0; // sets the game on or off, because we need an easy way to handle game over.
     address payable public owner;
     bool private locked;
@@ -31,8 +31,8 @@ contract CountingGame {
         return count;
     }
 
-    function inc() public payable gameOver nonReentrant {   
-        require(msg.value == fees, "Insufficient fee"); // Require correct fee
+    function inc() public payable gameOver nonReentrant returns(uint) {   
+        require(msg.value == fees, "Insufficient fee, must be 0.1 RON"); // Require correct fee
         count += 1;
         distributeFees();
         
@@ -40,17 +40,19 @@ contract CountingGame {
             gameState = 1;
             lastPlayer = payable(msg.sender);
         }
+        return count;
     }
     
-    function dec() public payable gameOver nonReentrant {
-        require(msg.value == fees, "Insufficient fee"); // Require correct fee  
+    function dec() public payable gameOver nonReentrant returns(uint) {
+        require(msg.value == fees, "Insufficient fee, must be 0.1 RON"); // Require correct fee  
         count -= 1;
         distributeFees();
-        
+
         if (count == 0) {
             gameState = 1;
             lastPlayer = payable(msg.sender);
         }
+        return count;
     }
     
     function distributeFees() internal {
@@ -65,7 +67,7 @@ contract CountingGame {
         require(msg.sender == lastPlayer); // this ensures only the last player can claim
         uint payout = rewardPool;
         rewardPool = 0;
-        winner.transfer(payout);
+        lastPlayer.transfer(payout);
     }
     
     function withdrawOwnerShare() public {
